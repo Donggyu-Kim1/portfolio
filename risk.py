@@ -4,8 +4,14 @@ import os
 import pandas as pd
 import numpy as np
 from pykrx import stock
-import matplotlib.pyplot as plt
 
+# 폰트/마이너스 설정
+import matplotlib
+
+matplotlib.rcParams["font.family"] = "Noto Sans CJK KR"
+matplotlib.rcParams["axes.unicode_minus"] = False
+
+import matplotlib.pyplot as plt
 
 PORTFOLIO_FILE = Path("config/portfolio.csv")
 

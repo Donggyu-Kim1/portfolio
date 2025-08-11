@@ -1,0 +1,65 @@
+name: Daily Risk Pipeline
+
+on:
+  schedule:
+    # GitHub Actions는 UTC 기준. 16:00 KST(UTC+9) → 07:00 UTC
+    - cron: "0 7 * * 1-5"    # 평일만 16:00 KST
+  workflow_dispatch:            # 수동 실행 버튼
+
+permissions:
+  contents: write               # 결과를 repo에 커밋/푸시하려면 필요
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Seoul           # 파이썬 date.today() 기준을 KST로
+      MPLBACKEND: Agg          # 헤드리스 렌더링
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install system deps (fonts for Korean text)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-noto-cjk
+
+      - name: Install Python deps
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run pipeline
+        run: |
+          python path/to/your_script.py
+
+      - name: Commit & push results
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add -A
+            git commit -m "Daily risk run $(date +'%Y-%m-%d %H:%M %Z')"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Upload artifacts (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: risk-results-${{ github.run_id }}
+          path: |
+            data/*/visuals/*.png
+            data/*/risk_summary/*.csv
+            data/*/correlation/*.csv
+            data/*/returns/*.csv
+            data/*/prices/*.csv
+          if-no-files-found: warn
