@@ -2,24 +2,36 @@ name: Daily Risk Pipeline
 
 on:
   schedule:
-    # GitHub Actions는 UTC 기준. 16:00 KST(UTC+9) → 07:00 UTC
-    - cron: "0 7 * * 1-5"    # 평일만 16:00 KST
-  workflow_dispatch:            # 수동 실행 버튼
+    - cron: "0 7 * * 1-5"    # 평일 16:00 KST
+  workflow_dispatch:
 
 permissions:
-  contents: write               # 결과를 repo에 커밋/푸시하려면 필요
+  contents: write
+
+concurrency:
+  group: daily-risk
+  cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
     env:
-      TZ: Asia/Seoul           # 파이썬 date.today() 기준을 KST로
-      MPLBACKEND: Agg          # 헤드리스 렌더링
+      TZ: Asia/Seoul
+      MPLBACKEND: Agg
     steps:
-      - name: Checkout
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
+          ref: main            # ← 반드시 브랜치로 체크아웃
           fetch-depth: 0
+          persist-credentials: true
+
+      - name: Prepare branch (ensure up-to-date)
+        run: |
+          git fetch origin main
+          # 로컬 main을 원격 기준으로 만들고 최신으로 당겨오기
+          git checkout -B main origin/main
+          git pull --ff-only origin main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -41,14 +53,16 @@ jobs:
         run: |
           python risk.py
 
-      - name: Commit & push results
+      - name: Commit & push results (rebase in case main moved)
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           if [ -n "$(git status --porcelain)" ]; then
             git add -A
             git commit -m "Daily risk run $(date +'%Y-%m-%d %H:%M %Z')"
-            git push
+            # 원격 main이 앞서 있으면 로컬 커밋을 rebase해서 푸시
+            git pull --rebase origin main || true
+            git push origin HEAD:main
           else
             echo "No changes to commit."
           fi
