@@ -5,10 +5,29 @@ import pandas as pd
 import numpy as np
 from pykrx import stock
 
-# 폰트/마이너스 설정
+# 폰트/마이너스 설정 (pyplot import 전에)
 import matplotlib
+from matplotlib import font_manager as fm
 
-matplotlib.rcParams["font.family"] = "Noto Sans CJK KR"
+CANDIDATES = [
+    "Noto Sans CJK KR",  # Ubuntu noto-cjk
+    "NanumGothic",  # Ubuntu fonts-nanum
+    "AppleGothic",  # macOS
+    "Malgun Gothic",  # Windows
+]
+
+available = {f.name for f in fm.fontManager.ttflist}
+picked = None
+for name in CANDIDATES:
+    if name in available:
+        picked = name
+        break
+
+if picked is None:
+    print("⚠️  CJK 폰트를 찾지 못했습니다. 한글 표시가 깨질 수 있어요.")
+else:
+    matplotlib.rcParams["font.family"] = picked
+
 matplotlib.rcParams["axes.unicode_minus"] = False
 
 import matplotlib.pyplot as plt
