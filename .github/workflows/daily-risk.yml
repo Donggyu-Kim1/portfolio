@@ -27,20 +27,15 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install system deps (fonts for Korean text)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y fonts-noto-cjk
-
-      - name: Install Python deps
-        run: |
-          pip install -r requirements.txt
-
       - name: Install KR fonts
         run: |
           sudo apt-get update
           sudo apt-get install -y fonts-noto-cjk fonts-nanum
           fc-list :lang=ko family | sort | uniq
+
+      - name: Install Python deps
+        run: |
+          pip install -r requirements.txt
 
       - name: Run pipeline
         run: |
