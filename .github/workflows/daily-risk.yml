@@ -38,7 +38,7 @@ jobs:
 
       - name: Run pipeline
         run: |
-          python path/to/your_script.py
+          python risk.py
 
       - name: Commit & push results
         run: |
