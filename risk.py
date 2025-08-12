@@ -476,6 +476,52 @@ vol_60d_latest = (
     else float("nan")
 )
 
+# === 투자 성과 (일간) & 종목별 현재 수익률 표 ===
+# 포트폴리오/코스피 '일간 수익률' (단순 수익률)
+port_daily_ret_series = portfolio_value_series.pct_change().dropna()
+kospi_daily_ret_series = aligned["KOSPI"].pct_change().dropna()
+port_daily_ret = (
+    float(port_daily_ret_series.iloc[-1])
+    if len(port_daily_ret_series)
+    else float("nan")
+)
+kospi_daily_ret = (
+    float(kospi_daily_ret_series.iloc[-1])
+    if len(kospi_daily_ret_series)
+    else float("nan")
+)
+excess_daily_ret = (
+    port_daily_ret - kospi_daily_ret
+    if np.isfinite(port_daily_ret) and np.isfinite(kospi_daily_ret)
+    else float("nan")
+)
+
+# 종목별 현재 수익률(매입가 대비) 테이블 (가독성을 위해 비중 순서로)
+order = list(weights.index)
+rows = [
+    "| 종목 | 수량 | 매입가 | 현재가 | 손익률 | 손익(원) |",
+    "|---|---:|---:|---:|---:|---:|",
+]
+for lbl in order:
+    qty = int(pd.Series(shares).get(lbl, 0))
+    bp = float(buy.get(lbl, np.nan))  # 매입가
+    lp = float(latest_prices.get(lbl, np.nan))  # 현재가
+    retpct = (lp / bp - 1) * 100 if bp > 0 and np.isfinite(lp) else float("nan")
+    pnl_val = (lp - bp) * qty if np.isfinite(lp) and np.isfinite(bp) else float("nan")
+    rows.append(
+        f"| {lbl} | {qty:,} | {bp:,.0f} | {lp:,.0f} | {retpct:.2f}% | {pnl_val:,.0f} |"
+    )
+
+perf_table_md = "\n".join(rows)
+
+# 리포트용 섹션 문자열
+perf_md = (
+    "## 투자 성과\n"
+    f"- 일간 수익률: 포트 {(port_daily_ret*100):.2f}% · KOSPI {(kospi_daily_ret*100):.2f}% · 초과수익 {(excess_daily_ret*100):.2f}%\n\n"
+    "### 종목별 현재 수익률 (매입가 대비)\n"
+    f"{perf_table_md}\n"
+)
+
 # 3) 규칙 기반 메시지 생성 (임계값은 필요 시 조정)
 messages = []
 
@@ -575,7 +621,7 @@ reco = "## 액션 제안\n" + (
     "\n".join(actions) if actions else "- 즉시 조치 필요 없음. 정기 모니터링 유지."
 )
 
-report_md = header + "\n" + insights + "\n\n" + reco + "\n"
+report_md = header + "\n" + perf_md + "\n" + insights + "\n\n" + reco + "\n"
 report_txt = report_md.replace("#", "").replace("*", "")
 
 # 6) 저장
