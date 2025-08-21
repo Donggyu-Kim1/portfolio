@@ -2,7 +2,7 @@ name: Daily Risk Pipeline
 
 on:
   schedule:
-    - cron: "0 7 * * 1-5"    # 평일 16:00 KST
+    - cron: "0 8 * * 1-5"    # 평일 16:00 KST
   workflow_dispatch:
 
 permissions:
