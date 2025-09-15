@@ -51,7 +51,7 @@ jobs:
 
       - name: Run pipeline
         run: |
-          python risk.py
+          python src/risk.py
 
       - name: Commit & push results (rebase in case main moved)
         run: |
