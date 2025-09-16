@@ -1,0 +1,91 @@
+name: Daily Risk Pipeline
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # 17:00 Asia/Seoul == 08:00 UTC, weekdays only (Mon-Fri)
+    - cron: "0 8 * * 1-5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-risk
+  cancel-in-progress: false
+
+jobs:
+  run-daily:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # Safety guard: if manually triggered or re-run on weekend, skip the rest.
+      - name: Decide if we should run today (KST)
+        id: weekday
+        env:
+          TZ: Asia/Seoul
+        run: |
+          DOW=$(date +%u)   # 1=Mon ... 7=Sun in KST
+          if [ "$DOW" -le 5 ]; then
+            echo "run=true"  >> "$GITHUB_OUTPUT"
+            echo "Today is weekday (KST). Proceed."
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Today is weekend in KST. Skipping pipeline steps."
+          fi
+
+      - name: Set up Python
+        if: steps.weekday.outputs.run == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        if: steps.weekday.outputs.run == 'true'
+        run: |
+          python -V
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "No requirements.txt found. Skipping dependency install."
+          fi
+
+      - name: Run pipeline (main.py)
+        if: steps.weekday.outputs.run == 'true'
+        env:
+          TZ: Asia/Seoul
+        run: |
+          set -e
+          python main.py
+
+      - name: Commit & push results to main
+        if: steps.weekday.outputs.run == 'true'
+        env:
+          TZ: Asia/Seoul
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git pull --rebase origin main || true
+          git add -A data/result data/_logs || true
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          COMMIT_MSG="chore(risk): daily run at $(date '+%Y-%m-%d %H:%M %Z')"
+          git commit -m "$COMMIT_MSG"
+          git push origin HEAD:main
+
+      - name: Skipped (weekend in KST)
+        if: steps.weekday.outputs.run != 'true'
+        run: echo "Pipeline skipped due to weekend in KST."
