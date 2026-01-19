@@ -1,0 +1,39 @@
+[2026-01-19 17:31:53] === PIPELINE START ===
+Steps: 7
+Keep-going: False
+Log file : /home/runner/work/portfolio/portfolio/data/_logs/pipeline_20260119_173153.log
+Python   : /opt/hostedtoolcache/Python/3.11.14/x64/bin/python
+[2026-01-19 17:31:53] --- Step 1/7: src/price.py ---
+[2026-01-19 17:31:53] [RUN ] src/price.py  (cmd: /opt/hostedtoolcache/Python/3.11.14/x64/bin/python /home/runner/work/portfolio/portfolio/src/price.py)
+/opt/hostedtoolcache/Python/3.11.14/x64/lib/python3.11/site-packages/pykrx/__init__.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+[2026-01-19 17:32:01] [DONE] price.py  exit=0  elapsed=7.8s
+[2026-01-19 17:32:01] --- Step 2/7: src/return.py ---
+[2026-01-19 17:32:01] [RUN ] src/return.py  (cmd: /opt/hostedtoolcache/Python/3.11.14/x64/bin/python /home/runner/work/portfolio/portfolio/src/return.py)
+[OK] 결과 저장: data/result/portfolio_status_2026-01-19.md
+[2026-01-19 17:32:01] [DONE] return.py  exit=0  elapsed=0.4s
+[2026-01-19 17:32:01] --- Step 3/7: src/beta.py ---
+[2026-01-19 17:32:01] [RUN ] src/beta.py  (cmd: /opt/hostedtoolcache/Python/3.11.14/x64/bin/python /home/runner/work/portfolio/portfolio/src/beta.py)
+[OK] Beta 결과 추가 완료: data/result/portfolio_status_2026-01-19.md
+[2026-01-19 17:32:02] [DONE] beta.py  exit=0  elapsed=0.5s
+[2026-01-19 17:32:02] --- Step 4/7: src/ewma.py ---
+[2026-01-19 17:32:02] [RUN ] src/ewma.py  (cmd: /opt/hostedtoolcache/Python/3.11.14/x64/bin/python /home/runner/work/portfolio/portfolio/src/ewma.py)
+[OK] EWMA CSV 저장: data/processed/ewma_1y_lambda0_94_2026-01-19.csv
+[OK] EWMA 결과 추가 완료: data/result/portfolio_status_2026-01-19.md
+[2026-01-19 17:32:02] [DONE] ewma.py  exit=0  elapsed=0.4s
+[2026-01-19 17:32:02] --- Step 5/7: src/cov.py ---
+[2026-01-19 17:32:02] [RUN ] src/cov.py  (cmd: /opt/hostedtoolcache/Python/3.11.14/x64/bin/python /home/runner/work/portfolio/portfolio/src/cov.py)
+[완료] 11개 종목, 창: 2025-01-19 ~ 2026-01-19
+[저장] data/processed/corr_1y_2026-01-19.csv
+[2026-01-19 17:32:02] [DONE] cov.py  exit=0  elapsed=0.4s
+[2026-01-19 17:32:02] --- Step 6/7: src/self_cov.py ---
+[2026-01-19 17:32:02] [RUN ] src/self_cov.py  (cmd: /opt/hostedtoolcache/Python/3.11.14/x64/bin/python /home/runner/work/portfolio/portfolio/src/self_cov.py)
+[OK] 저장 완료: data/processed/acf_1y_lag1_9_2026-01-19.csv
+[2026-01-19 17:32:03] [DONE] self_cov.py  exit=0  elapsed=0.4s
+[2026-01-19 17:32:03] --- Step 7/7: src/var.py ---
+[2026-01-19 17:32:03] [RUN ] src/var.py  (cmd: /opt/hostedtoolcache/Python/3.11.14/x64/bin/python /home/runner/work/portfolio/portfolio/src/var.py)
+[완료] 개별 종목 VaR: data/result/var_individual_2026-01-19.csv
+[완료] 포트폴리오 VaR 요약: data/result/var_portfolio_2026-01-19.csv
+[완료] MD 요약: data/result/portfolio_status_2026-01-19.md
+[2026-01-19 17:32:03] [DONE] var.py  exit=0  elapsed=0.4s
+[2026-01-19 17:32:03] === PIPELINE END ===  ok=7, fail=0, elapsed_total=10.3s
