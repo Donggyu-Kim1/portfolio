@@ -2,9 +2,9 @@ name: Daily Risk Pipeline
 
 on:
   workflow_dispatch: {}
-  schedule:
-    # 17:00 Asia/Seoul == 08:00 UTC, weekdays only (Mon-Fri)
-    - cron: "0 8 * * 1-5"
+  # schedule:
+  #   17:00 Asia/Seoul == 08:00 UTC, weekdays only (Mon-Fri)
+  #   - cron: "0 8 * * 1-5"
 
 permissions:
   contents: write
